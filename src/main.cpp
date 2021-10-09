@@ -1,33 +1,18 @@
 #define OLC_PGE_APPLICATION
-#include <stdlib.h> // exit, EXIT_FAILURE, atoi
-#include <stdio.h> // printf
-#include <string>
-
-#include "game.h"
-
-using std::cout;
-using std::endl;
-using std::string;
-
-
-bool parse_args(int argc, char** argv,
-                int& rows, int& cols, Point& start, Point& end, Points& keys);
-void usage(char** argv);
+#include "main.h"
 
 
 int main(int argc, char** argv)
 {
-    int rows, cols;
-    Point start, end;
-    Points keys;
+    Parameters args;
 
-    if ( !parse_args(argc, argv, rows, cols, start, end, keys) )
+    if ( !parse_args(argc, argv, args) )
     {
-        usage(argv);
+        usage(argv[0]);
         return EXIT_FAILURE;
     }
 
-    Game game(rows, cols, start, end, keys);
+    Game game(args.rows, args.cols, args.start, args.exit, args.keys);
 
     game.run();
 
@@ -35,11 +20,10 @@ int main(int argc, char** argv)
 }
 
 
-bool parse_args(int argc, char** argv,
-                int& rows, int& columns, Point& start, Point& exit, Points& keys)
+bool parse_args(int argc, char** argv, Parameters& args)
 {
-    rows = columns = 0;
-    start = Point(0, 0);
+    args.rows = args.cols = 0;
+    args.start = Point(-1, -1);
 
     for ( int i = 1; i < argc; i++ ) // parse argv
     {
@@ -50,9 +34,10 @@ bool parse_args(int argc, char** argv,
                 if ( i + 2 > argc )
                     throw string( "too few values" );
 
-                rows = atoi( argv[i] ); columns = atoi( argv[i + 1] );
+                args.rows = atoi( argv[i] );
+                args.cols = atoi( argv[i + 1] );
 
-                exit = Point(-1, -1);
+                args.exit = Point(-1, -1);
 
                 ++i;
             }
@@ -61,7 +46,7 @@ bool parse_args(int argc, char** argv,
                 if ( i + 2 >= argc )
                     throw string( "-k coordinates not given" );
 
-                keys.emplace_back( atoi(argv[i + 1]), atoi(argv[i + 2]) );
+                args.keys.emplace_back( atoi(argv[i + 1]), atoi(argv[i + 2]) );
 
                 ++++i;
             }
@@ -70,7 +55,7 @@ bool parse_args(int argc, char** argv,
                 if ( i + 2 >= argc )
                     throw string( "-s too few values" );
 
-                start = Point( atoi( argv[i + 1] ), atoi( argv[i + 2] ) );
+                args.start = Point( atoi( argv[i + 1] ), atoi( argv[i + 2] ) );
 
                 ++++i;
             }
@@ -79,7 +64,7 @@ bool parse_args(int argc, char** argv,
                 if ( i + 2 >= argc )
                     throw string( "-e too few values" );
 
-                exit = Point( atoi( argv[i + 1] ), atoi( argv[i + 2] ) );
+                args.exit = Point( atoi( argv[i + 1] ), atoi( argv[i + 2] ) );
 
                 ++++i;
             }
@@ -99,17 +84,20 @@ bool parse_args(int argc, char** argv,
         }
     }
 
-    if ( exit.r == -1 )
-        exit = Point(rows - 1, columns - 1);
+    if ( args.start == Point(-1, -1) )
+        args.start = Point(0, 0);
 
-    if ( rows == 0 || columns == 0 )
+    if ( args.exit == Point(-1, -1) )
+        args.exit = Point(args.cols - 1, args.rows - 1);
+
+    if ( args.rows == 0 || args.cols == 0 )
         return false;
 
     return true;
 }
 
 
-void usage(char** argv)
+void usage(char* name)
 {
     printf("Usage: %s [-h] rows cols -s <r> <c> -e <r> <c> [-k <r> <c> [-k ...]]\n"
     "\trows : the number of rows in the maze\n"
@@ -118,6 +106,6 @@ void usage(char** argv)
     "\t-s : the starting position, e.g., '-s <row> <column>; default = (0, 0)'\n"
     "\t-e : position of the exit; default = (rows - 1, cols - 1)\n"
     "\t-k : position for a key to be placed, may be given multiple times\n",
-    argv[0]
+    name
     );
 }

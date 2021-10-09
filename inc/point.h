@@ -10,25 +10,27 @@ using std::ostream;
 using std::vector;
 
 
-struct Point
-{
-    int r, c;
+struct Point {
+    int x, y;
+
     Point();
-    Point(int row, int col);
+    Point(int x, int y);
+
+    Point operator*(int scalar) const;
+    Point operator+(const Point& o) const;
     bool operator==(const Point& o) const;
 };
 
 ostream& operator<<(ostream& out, Point p);
 
 
-class Points : public vector<Point>
-{
+class Points : public vector<Point> {
 public:
     using vector<Point>::vector; // inherit vector ctors
 
+    bool contains(Point) const;
     Point rand() const;
     void remove(Point);
-    bool contains(Point) const;
 };
 
 ostream& operator<<(ostream& out, const Points& pts);
