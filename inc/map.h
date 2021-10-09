@@ -1,38 +1,40 @@
 #ifndef __MAP__H__
 #define __MAP__H__
 
-#include <iostream>
-#include <stdlib.h> // rand, srand
-#include <time.h> // time
+#include <iostream>     // cout, ostream
+#include <stdlib.h>     // rand, srand
+#include <time.h>       // time
+#include <functional>   // function
 #include "alloc2D.h"
-#include "tile.h"
-#include "point.h"
 
 using std::cout;
+using std::function;
 using std::ostream;
+
+typedef function<byte&(int, int)> TileGetter;
+typedef void(*Generator)(TileGetter, int, int);
+
+enum Tile : char { CHAR = '@', OPEN = ' ', WALL = '#', EXIT = 'n', KEY  = '%' };
+enum Direction : char { NONE, NORTH, SOUTH, EAST, WEST };
 
 
 class Map
 {
 protected:
     byte** data;
-    char** repr;
-
-    void join(Point, Point);
-    Point rand_adj(Point);
-    void generate();
+    int ROWS, COLS;
 
 public:
-    const int ROWS, COLS;
-
-    Map(int height, int width);
+    Map(int width, int height);
     ~Map();
 
-    Tile at(Point);
-    Tile at(int row, int col);
-    void print(ostream& out = std::cout);
+    byte& at(int x, int y);
+    byte get(int x, int y) const;
+    int height() const;
+    int width() const;
 
-    const char * const * const get() const;
+    void generate(Generator);
+    void print(ostream& out = cout);
 };
 
 

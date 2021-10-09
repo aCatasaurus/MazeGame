@@ -2,25 +2,24 @@
 #define __GAME__H__
 
 #include "olcPixelGameEngine.h"
-#include <limits>
 #include <stdlib.h> // exit, EXIT_FAILURE
+#include <stdexcept>
 #include "map.h"
+#include "point.h"
+#include "random_walk.h"
 
-using std::streamsize;
 enum Orientation : byte { UP, LEFT, DOWN, RIGHT };
-constexpr const char* DIRECTION_CSTRINGS[4] = { "Forward", "Right", "Back", "Left" };
-constexpr streamsize MAX_BUFF_SIZE = std::numeric_limits<streamsize>::max();
 constexpr float FRAME_TIME = 1 / 60.0;
+constexpr int TILE_SIZE = 8;
+constexpr int PXL_SIZE = 2;
 
 
 class Game : public olc::PixelGameEngine
 {
 protected:
-    olc::Sprite charSpr, wallSpr, doorSpr, itemSpr;
+    olc::Sprite charSpr, wallSpr, doorSpr, keySpr, floorSpr;
 
-    int width, height;
-
-    Map map;
+    Map* map;
     Point exit;
     Point player;
     Points keys;
@@ -28,6 +27,7 @@ protected:
     byte facing;
 
     void draw();
+    void map_init(int rows, int cols);
     bool move(byte direction);
 
 public:

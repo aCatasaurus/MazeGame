@@ -1,20 +1,36 @@
 #include "point.h"
 
 
-Point::Point() : r(0), c(0) {}
+/*******************************************************************************
+*                               Point Functions                                *
+*******************************************************************************/
 
-Point::Point(int row, int col) : r(row), c(col) {}
+Point::Point() : x(0), y(0) {}
 
-bool Point::operator==(const Point& o) const
+Point::Point(int _x, int _y) : x(_x), y(_y) {}
+
+Point Point::operator*(int scalar) const {
+    return Point(x * scalar, y * scalar);
+}
+
+Point Point::operator+(const Point& other) const {
+    return Point(this->x + other.x, this->y + other.y);
+}
+
+bool Point::operator==(const Point& other) const
 {
-    return (r == o.r) && (c == o.c);
+    return (this->x == other.x) && (this->y == other.y);
 }
 
 ostream& operator<<(ostream& out, Point pt)
 {
-    return out << "(r=" << pt.r << ", c=" << pt.c << ')';
+    return out << '(' << pt.x << ", " << pt.y << ')';
 }
 
+
+/*******************************************************************************
+*                              Points Functions                                *
+*******************************************************************************/
 
 Point Points::rand() const
 {
@@ -38,11 +54,10 @@ bool Points::contains(Point pt) const
 
 ostream& operator<<(ostream& out, const Points& pts)
 {
-    unsigned i;
-
     out << '[';
     if ( !pts.empty() )
     {
+        unsigned i;
         for ( i = 0; i < pts.size() - 1; ++i )
             out << pts[i] << ", ";
         out << pts[i];
