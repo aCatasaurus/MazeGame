@@ -15,6 +15,12 @@ constexpr const char * const FLOOR_SPRS[] = {
 };
 
 
+constexpr const char * const FOG_SPRS[] = {
+    PATH "fog0.png", PATH "fog1.png",
+    PATH "fog2.png", PATH "fog3.png", nullptr
+};
+
+
 constexpr const char * const WALLS_SPRS[] = {
     PATH "wall0.png", PATH "wall1.png", PATH "wall2.png", nullptr
 };

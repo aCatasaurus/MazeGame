@@ -8,41 +8,51 @@ Game::Game(int rows, int cols, Point start, Point end, Points keys)
     : exit(end), player(start), keys(keys), over(false), facing(0)
 {
     map_init(rows, cols);
+    explored = (bool**)alloc2D(map->width(), map->height(), false);
+    update_fog();
 
     Construct(map->width() * TILE_SIZE, map->height() * TILE_SIZE, PXL_SIZE, PXL_SIZE);
 }
 
 Game::~Game()
 {
+    free2D((byte**)explored);
     delete map;
+    delete charSprs;
     delete floorSprs;
+    delete fogSprs;
     delete wallSprs;
 }
 
 void Game::draw() {
-    srand(0);
     Clear(olc::BLACK);
     for ( int y = 0; y < map->height(); ++y ) {
         for ( int x = 0; x < map->width(); ++x ) {
             int r = map->height() - y - 1;
             int c = x;
-
             DrawSprite(olc::vi2d(c, r) * TILE_SIZE, floorSprs->rand());
-            switch ( map->at(x, y) ) {
-                case CHAR:
-                    if ( player == exit )
+
+            if ( explored[x][y] ) {
+                srand(x + y * map->width());    // replace!
+                switch ( map->at(x, y) ) {
+                    case CHAR:
+                        if ( player == exit )
+                            DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &doorSpr);
+                        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, charSprs->at(facing));
+                        break;
+                    case WALL:
+                        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, wallSprs->rand());
+                        break;
+                    case EXIT:
                         DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &doorSpr);
-                    DrawSprite(olc::vi2d(c, r) * TILE_SIZE, charSprs->at(facing));
-                    break;
-                case WALL:
-                    DrawSprite(olc::vi2d(c, r) * TILE_SIZE, wallSprs->rand());
-                    break;
-                case EXIT:
-                    DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &doorSpr);
-                    break;
-                case KEY:
-                    DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &keySpr);
-                    break;
+                        break;
+                    case KEY:
+                        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &keySpr);
+                        break;
+                }
+            } else {
+                srand(time(NULL) * (x + y * map->width()));  // replace!
+                DrawSprite(olc::vi2d(c, r) * TILE_SIZE, fogSprs->rand());
             }
         }
     }
@@ -110,14 +120,12 @@ bool Game::move( byte direction ) // Updates player position and facing directio
 }
 
 bool Game::OnUserCreate() {
-    // charSpr .LoadFromFile("./assets/sprites/character"".png");
-    charSprs = new Sprites(CHAR_SPRS);
-    // wallSpr .LoadFromFile("./assets/sprites/wall"     ".png");
-    wallSprs = new Sprites(WALLS_SPRS);
-    doorSpr .LoadFromFile("./assets/sprites/door"     ".png");
-    keySpr  .LoadFromFile("./assets/sprites/key"      ".png");
-    // floorSpr.LoadFromFile("./assets/sprites/floor"    ".png");
+    doorSpr.LoadFromFile("./assets/sprites/door.png");
+    keySpr .LoadFromFile("./assets/sprites/key.png");
+    charSprs  = new Sprites(CHAR_SPRS);
+    wallSprs  = new Sprites(WALLS_SPRS);
     floorSprs = new Sprites(FLOOR_SPRS);
+    fogSprs   = new Sprites(FOG_SPRS);
     SetPixelMode(olc::Pixel::MASK);
 
     return true;
@@ -148,6 +156,7 @@ bool Game::OnUserUpdate(float fElapsedTime) {
         direction = NONE;
 
         if ( moved ) {
+            update_fog();
 
             if ( keys.contains(player) )
                 keys.remove(player);
@@ -174,4 +183,23 @@ bool Game::OnUserUpdate(float fElapsedTime) {
 void Game::run()
 {
     Start();
+}
+
+
+void Game::update_fog() {
+    for ( int x = player.x - 1; x <= player.x + 1; ++x )
+        for ( int y = player.y - 1; y <= player.y + 1; ++y )
+            explored[x][y] = true;
+
+    for ( int x = player.x + 1, y = player.y; map->at(x, y) != WALL; )
+        explored[++x][y] = true;
+
+    for ( int x = player.x - 1, y = player.y; map->at(x, y) != WALL; )
+        explored[--x][y] = true;
+
+    for ( int y = player.y + 1, x = player.x; map->at(x, y) != WALL; )
+        explored[x][++y] = true;
+
+    for ( int y = player.y - 1, x = player.x; map->at(x, y) != WALL; )
+        explored[x][--y] = true;
 }

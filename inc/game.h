@@ -22,10 +22,12 @@ protected:
     Sprites* charSprs;
     Sprites* wallSprs;
     Sprites* floorSprs;
+    Sprites* fogSprs;
     olc::Sprite doorSpr;
     olc::Sprite keySpr;
 
     Map* map;
+    bool** explored;
     Point exit;
     Point player;
     Points keys;
@@ -35,6 +37,7 @@ protected:
     void draw();
     void map_init(int rows, int cols);
     bool move(byte direction);
+    void update_fog();
 
 public:
     Game(int rows, int cols);
