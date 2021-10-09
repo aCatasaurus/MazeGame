@@ -15,24 +15,27 @@ Game::Game(int rows, int cols, Point start, Point end, Points keys)
 Game::~Game()
 {
     delete map;
+    delete floorSprs;
+    delete wallSprs;
 }
 
 void Game::draw() {
+    srand(0);
     Clear(olc::BLACK);
     for ( int y = 0; y < map->height(); ++y ) {
         for ( int x = 0; x < map->width(); ++x ) {
             int r = map->height() - y - 1;
             int c = x;
 
-            DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &floorSpr);
+            DrawSprite(olc::vi2d(c, r) * TILE_SIZE, floorSprs->rand());
             switch ( map->at(x, y) ) {
                 case CHAR:
                     if ( player == exit )
                         DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &doorSpr);
-                    DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &charSpr);
+                    DrawSprite(olc::vi2d(c, r) * TILE_SIZE, charSprs->at(facing));
                     break;
                 case WALL:
-                    DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &wallSpr);
+                    DrawSprite(olc::vi2d(c, r) * TILE_SIZE, wallSprs->rand());
                     break;
                 case EXIT:
                     DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &doorSpr);
@@ -107,11 +110,14 @@ bool Game::move( byte direction ) // Updates player position and facing directio
 }
 
 bool Game::OnUserCreate() {
-    charSpr .LoadFromFile("./assets/sprites/character"".png");
-    wallSpr .LoadFromFile("./assets/sprites/wall"     ".png");
+    // charSpr .LoadFromFile("./assets/sprites/character"".png");
+    charSprs = new Sprites(CHAR_SPRS);
+    // wallSpr .LoadFromFile("./assets/sprites/wall"     ".png");
+    wallSprs = new Sprites(WALLS_SPRS);
     doorSpr .LoadFromFile("./assets/sprites/door"     ".png");
     keySpr  .LoadFromFile("./assets/sprites/key"      ".png");
-    floorSpr.LoadFromFile("./assets/sprites/floor"    ".png");
+    // floorSpr.LoadFromFile("./assets/sprites/floor"    ".png");
+    floorSprs = new Sprites(FLOOR_SPRS);
     SetPixelMode(olc::Pixel::MASK);
 
     return true;

@@ -7,8 +7,10 @@
 #include "map.h"
 #include "point.h"
 #include "random_walk.h"
+#include "sprites.h"
+#include "spritedata.h"
 
-enum Orientation : byte { UP, LEFT, DOWN, RIGHT };
+enum Orientation : byte { RIGHT, LEFT, UP, DOWN };
 constexpr float FRAME_TIME = 1 / 60.0;
 constexpr int TILE_SIZE = 8;
 constexpr int PXL_SIZE = 2;
@@ -17,7 +19,11 @@ constexpr int PXL_SIZE = 2;
 class Game : public olc::PixelGameEngine
 {
 protected:
-    olc::Sprite charSpr, wallSpr, doorSpr, keySpr, floorSpr;
+    Sprites* charSprs;
+    Sprites* wallSprs;
+    Sprites* floorSprs;
+    olc::Sprite doorSpr;
+    olc::Sprite keySpr;
 
     Map* map;
     Point exit;
