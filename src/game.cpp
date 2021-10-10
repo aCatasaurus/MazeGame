@@ -102,6 +102,8 @@ void Game::draw() {
                     case Tile::LADDER:
                         DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &ladderSpr);
                         break;
+                    default:
+                        break;
                 }
             }
 
