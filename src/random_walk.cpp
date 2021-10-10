@@ -49,14 +49,14 @@ void random_walk(TileGetter at, int width, int height) {
 
 
 void join(TileGetter at, Point a, Point b) {
-    at(a.x, a.y) = OPEN;
-    at(b.x, b.y) = OPEN;
+    at(a.x, a.y) = (byte)Tile::OPEN;
+    at(b.x, b.y) = (byte)Tile::OPEN;
 
     if ( abs(a.x - b.x) == DX )
-        at((a.x + b.x) / 2, a.y) = OPEN;
+        at((a.x + b.x) / 2, a.y) = (byte)Tile::OPEN;
 
     else
-        at(a.x, (a.y + b.y) / 2) = OPEN;
+        at(a.x, (a.y + b.y) / 2) = (byte)Tile::OPEN;
 }
 
 

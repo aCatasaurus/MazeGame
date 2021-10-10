@@ -7,7 +7,9 @@ Game::Game(int rows, int cols)
 Game::Game(int rows, int cols, Point start, Point end, Points keys)
     : exit(end), entrance(start), keys(keys), over(false), facing(0)
 {
-    srand(time(NULL));
+    sAppName = "Labyrinth";
+
+    srand((unsigned)time(NULL));
 
     map_init(rows, cols);
     explored = alloc2D(map->width(), map->height(), false);
@@ -66,31 +68,31 @@ void Game::draw() {
             byte exploration = explored[x][y];
 
             if ( exploration > 0 ) {
-                switch ( map->at(x, y) ) {
-                    case CHAR:
+                switch ( (Tile)map->get(x, y) ) {
+                    case Tile::CHAR:
                         if ( player == exit )
                             DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &doorSpr);
                         else if ( player == entrance )
                             DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &ladderSpr);
                         DrawSprite(olc::vi2d(c, r) * TILE_SIZE, charSprs->at(facing));
                         break;
-                    case WALL:
+                    case Tile::WALL:
                         DrawSprite(olc::vi2d(c, r) * TILE_SIZE, wallSprs->rand(seed));
                         break;
-                    case EXIT:
+                    case Tile::EXIT:
                         DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &doorSpr);
                         break;
-                    case KEY:
+                    case Tile::KEY:
                         DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &keySpr);
                         break;
-                    case LADDER:
+                    case Tile::LADDER:
                         DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &ladderSpr);
                         break;
                 }
             }
 
             if ( exploration < FOG_N ) {
-                srand(time(NULL) * (y * map->width() + x));
+                srand((unsigned)time(NULL) * (y * map->width() + x));
                 DrawSprite(olc::vi2d(c, r) * TILE_SIZE, fogSprs[exploration]->rand());
             }
         }
@@ -128,10 +130,10 @@ void Game::map_init(int rows, int cols) {
 
     // place objects
     for ( auto key : keys )
-        map->at(key.x, key.y) = KEY;
+        map->at(key.x, key.y) = (byte)Tile::KEY;
 
-    map->at(player.x, player.y) = CHAR;
-    map->at(exit.x, exit.y) = EXIT;
+    map->at(player.x, player.y) = (byte)Tile::CHAR;
+    map->at(exit.x, exit.y) = (byte)Tile::EXIT;
 }
 
 bool Game::move( byte direction ) // Updates player position and facing direction
@@ -139,20 +141,20 @@ bool Game::move( byte direction ) // Updates player position and facing directio
     bool valid = false;
     int x = player.x, y = player.y;
 
-    switch ( direction )
+    switch ( (Direction)direction )
     {
-    case NORTH : { valid = map->get(x, ++y) != WALL; if (valid) facing = UP   ; break; }
-    case EAST  : { valid = map->get(++x, y) != WALL; if (valid) facing = RIGHT; break; }
-    case SOUTH : { valid = map->get(x, --y) != WALL; if (valid) facing = DOWN ; break; }
-    case WEST  : { valid = map->get(--x, y) != WALL; if (valid) facing = LEFT ; break; }
+    case Direction::NORTH : { valid = map->get(x, ++y) != (byte)Tile::WALL; if (valid) facing = UP   ; break; }
+    case Direction::EAST  : { valid = map->get(++x, y) != (byte)Tile::WALL; if (valid) facing = RIGHT; break; }
+    case Direction::SOUTH : { valid = map->get(x, --y) != (byte)Tile::WALL; if (valid) facing = DOWN ; break; }
+    case Direction::WEST  : { valid = map->get(--x, y) != (byte)Tile::WALL; if (valid) facing = LEFT ; break; }
     default: break;
     }
 
     if ( valid ) {
-        auto replacement = player == exit ? EXIT : player == entrance ? LADDER : OPEN;
-        map->at(player.x, player.y) = replacement;
+        auto replacement = player == exit ? Tile::EXIT : player == entrance ? Tile::LADDER : Tile::OPEN;
+        map->at(player.x, player.y) = (byte)replacement;
 
-        map->at(x, y) = CHAR;
+        map->at(x, y) = (byte)Tile::CHAR;
 
         player = Point(x, y);
     }
@@ -180,7 +182,7 @@ bool Game::OnUserCreate() { // init
 bool Game::OnUserUpdate(float fElapsedTime) { // frame update
     // static unsigned long long frame = 0;
     static float t_since_update = 0.0;
-    static byte direction = NONE;
+    static Direction direction = Direction::NONE;
     static short input_delay = 0;
 
     t_since_update += fElapsedTime;
@@ -189,17 +191,17 @@ bool Game::OnUserUpdate(float fElapsedTime) { // frame update
         t_since_update -= FRAME_TIME;
         // printf("Frame: %llu\n", frame++);
 
-        if ( --input_delay <= 0 && direction == NONE ) {
-                 if (GetKey(olc::Key::W).bHeld) direction = NORTH;
-            else if (GetKey(olc::Key::D).bHeld) direction = EAST;
-            else if (GetKey(olc::Key::S).bHeld) direction = SOUTH;
-            else if (GetKey(olc::Key::A).bHeld) direction = WEST;
-            if ( direction != NONE )
+        if ( --input_delay <= 0 && direction == Direction::NONE ) {
+                 if (GetKey(olc::Key::W).bHeld) direction = Direction::NORTH;
+            else if (GetKey(olc::Key::D).bHeld) direction = Direction::EAST;
+            else if (GetKey(olc::Key::S).bHeld) direction = Direction::SOUTH;
+            else if (GetKey(olc::Key::A).bHeld) direction = Direction::WEST;
+            if ( direction != Direction::NONE )
                 input_delay = 6;
         }
 
-        bool moved = move(direction);
-        direction = NONE;
+        bool moved = move((byte)direction);
+        direction = Direction::NONE;
 
         if ( moved ) {
             update_fog();
@@ -241,18 +243,18 @@ void Game::update_fog() {
     // line of sight checks
     int x, y;
     x = player.x, y = player.y;
-    for ( int s = FOG_N; s > 0 && map->at(x, y) != WALL; --s, ++x )
+    for ( int s = FOG_N; s > 0 && map->at(x, y) != (byte)Tile::WALL; --s, ++x )
         explored[x + 1][y] = std::min(explored[x + 1][y] + s, FOG_N);
 
     x = player.x, y = player.y;
-    for ( int s = FOG_N; s > 0 && map->at(x, y) != WALL; --s, --x )
+    for ( int s = FOG_N; s > 0 && map->at(x, y) != (byte)Tile::WALL; --s, --x )
         explored[x - 1][y] = std::min(explored[x - 1][y] + s, FOG_N);
 
     x = player.x, y = player.y;
-    for ( int s = FOG_N; s > 0 && map->at(x, y) != WALL; --s, ++y )
+    for ( int s = FOG_N; s > 0 && map->at(x, y) != (byte)Tile::WALL; --s, ++y )
         explored[x][y + 1] = std::min(explored[x][y + 1] + s, FOG_N);
 
     x = player.x, y = player.y;
-    for ( int s = FOG_N; s > 0 && map->at(x, y) != WALL; --s, --y )
+    for ( int s = FOG_N; s > 0 && map->at(x, y) != (byte)Tile::WALL; --s, --y )
         explored[x][y - 1] = std::min(explored[x][y - 1] + s, FOG_N);
 }

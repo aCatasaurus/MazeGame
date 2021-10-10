@@ -1,6 +1,7 @@
 #ifndef __GAME__H__
 #define __GAME__H__
 
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #include "olcPixelGameEngine.h"
 #include <algorithm>    // min
 #include <stdlib.h> // exit, EXIT_FAILURE
@@ -12,7 +13,7 @@
 #include "spritedata.h"
 
 enum Orientation : byte { RIGHT, LEFT, UP, DOWN };
-constexpr float FRAME_TIME = 1 / 60.0;
+constexpr float FRAME_TIME = 1.0f / 60.0f;
 constexpr int TILE_SIZE = 8;
 constexpr int PXL_SIZE = 2;
 

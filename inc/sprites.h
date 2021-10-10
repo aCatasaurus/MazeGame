@@ -1,9 +1,10 @@
 #ifndef __SMART__SPRITE__H__
 #define __SMART__SPRITE__H__
 
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#include "olcPixelGameEngine.h"
 #include <stdlib.h> // rand
 #include <vector>
-#include "olcPixelGameEngine.h"
 
 using std::vector;
 
