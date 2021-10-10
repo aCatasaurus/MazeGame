@@ -27,6 +27,10 @@ ostream& operator<<(ostream& out, Point pt)
     return out << '(' << pt.x << ", " << pt.y << ')';
 }
 
+double Point::dist(Point other) const {
+    return pow(this->x - other.x, 2) + pow(this->y - other.y, 2);
+}
+
 
 /*******************************************************************************
 *                              Points Functions                                *

@@ -31,15 +31,25 @@ bool parse_args(int argc, char** argv, Parameters& args)
         {
             if ( i == 1 )
             {
-                if ( i + 2 > argc )
-                    throw string( "too few values" );
+                if ( argc == 2 && strcmp( argv[1], "-r" ) == 0)
+                {
+                    random_init(args);
+                }
+                else
+                {
+                    if ( i + 2 > argc )
+                        throw string( "too few values" );
 
-                args.rows = atoi( argv[i] );
-                args.cols = atoi( argv[i + 1] );
+                    args.rows = atoi( argv[i] );
+                    args.cols = atoi( argv[i + 1] );
 
-                args.exit = Point(-1, -1);
+                    args.exit = Point(-1, -1);
 
-                ++i;
+                    ++i;
+                }
+            }
+            else if ( strcmp( argv[i], "-r" ) == 0 ) { // random setup
+                random_init(args);
             }
             else if ( strcmp( argv[i], "-k" ) == 0 ) // add a key
             {
@@ -97,11 +107,46 @@ bool parse_args(int argc, char** argv, Parameters& args)
 }
 
 
+void random_init(Parameters& args) {
+    srand(time(NULL));
+
+    int& rs = args.rows;
+    int& cs = args.cols;
+
+    if ( rs == 0 || cs == 0 ) {
+        int rmin = 4, rmax = 10;
+        int cmin = 4, cmax = 20;
+        rs = rmin + rand() % (rmax - rmin + 1);
+        cs = cmin + rand() % (cmax - cmin + 1);
+    }
+
+    Points objs;
+    int weight = rand() % ((rs * cs) / (2 * (rs + cs)) + 1);
+
+    for ( int i = 0; i < weight + 2; ++i ) {
+        Point obj(rand() % cs, rand() % rs);
+        while ( objs.contains(obj) )
+            obj = Point(rand() % cs, rand() % rs);
+        objs.push_back(obj);
+    }
+
+    Point center(cs / 2.0, rs / 2.0);
+    sort(objs.begin(), objs.end(),
+        [center](Point a, Point b) { return a.dist(center) < b.dist(center); }
+    );
+
+    args.start = *(objs.end() - 1);
+    args.exit  = *(objs.end() - 2);
+    args.keys.insert(args.keys.end(), objs.begin(), objs.end() - 2);
+}
+
+
 void usage(char* name)
 {
-    printf("Usage: %s [-h] rows cols -s <r> <c> -e <r> <c> [-k <r> <c> [-k ...]]\n"
+    printf("Usage: %s [-h] (rows cols | [rows cols] -r) [-s <r> <c>] [-e <r> <c>] [-k <r> <c> [-k ...]]\n"
     "\trows : the number of rows in the maze\n"
     "\tcols : the number of columns in the maze\n"
+    "\t-r : generate a random maze (for this, rows and cols are optional)\n"
     "\t-h : display this information\n"
     "\t-s : the starting position, e.g., '-s <row> <column>; default = (0, 0)'\n"
     "\t-e : position of the exit; default = (rows - 1, cols - 1)\n"

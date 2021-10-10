@@ -18,6 +18,7 @@ struct Parameters {
 
 
 bool parse_args(int argc, char** argv, Parameters& args);
+void random_init(Parameters& args);
 void usage(char* name);
 
 
