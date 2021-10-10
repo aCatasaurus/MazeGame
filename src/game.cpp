@@ -238,8 +238,6 @@ bool Game::OnUserUpdate(float fElapsedTime) { // frame update
                 if ( keys.size() == 0 ) {
                     over = true;
                     input_delay = 20;
-                } else {
-                    printf("You cannot unlock the door.\n");
                 }
             }
         } else if ( input_delay <= 0 ) {
