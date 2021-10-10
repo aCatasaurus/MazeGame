@@ -3,19 +3,22 @@
 
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #include "olcPixelGameEngine.h"
+#include <memory>
 #include <stdlib.h> // rand
 #include <vector>
+
+typedef std::unique_ptr<olc::Sprite> SpritePtr;
 
 using std::vector;
 
 
-class Sprites : public vector<olc::Sprite*> {
+class Sprites : public vector<SpritePtr> {
 public:
-    using vector<olc::Sprite*>::vector;
+    using vector<SpritePtr>::vector;
     Sprites(const char * const files[]);
 
-    olc::Sprite* rand();
-    olc::Sprite* rand(int seed);
+    SpritePtr& rand();
+    SpritePtr& rand(int seed);
 };
 
 

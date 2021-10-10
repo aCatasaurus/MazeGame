@@ -2,18 +2,16 @@
 
 
 Sprites::Sprites(const char * const files[]) {
-    for ( int i = 0; files[i] != nullptr; ++i ) {
-        olc::Sprite* ptr = new olc::Sprite(files[i]);
-        push_back(ptr);
-    }
+    for ( int i = 0; files[i] != nullptr; ++i )
+        push_back(std::make_unique<olc::Sprite>(files[i]));
 }
 
 
-olc::Sprite* Sprites::rand() {
+SpritePtr& Sprites::rand() {
     return (*this)[::rand() % size()];
 }
 
 
-olc::Sprite* Sprites::rand(int seed) {
+SpritePtr& Sprites::rand(int seed) {
     return (*this)[seed % size()];
 }
