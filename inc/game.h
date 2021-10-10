@@ -12,22 +12,25 @@
 #include "sprites.h"
 #include "spritedata.h"
 
-enum Orientation : byte { RIGHT, LEFT, UP, DOWN };
 constexpr float FRAME_TIME = 1.0f / 60.0f;
+constexpr int INPUT_DELAY = 6;
 constexpr int TILE_SIZE = 8;
-constexpr int PXL_SIZE = 2;
+constexpr int PXL_SIZE = 3;
 
 
 class Game : public olc::PixelGameEngine {
 protected:
     Sprites* barrierSprs;
     Sprites* charSprs;
+    Sprites* doorSprs;
     Sprites* wallSprs;
     Sprites* floorSprs;
     Sprites* fogSprs[FOG_N];
-    olc::Sprite doorSpr;
+    olc::Sprite endcardSpr;
     olc::Sprite ladderSpr;
     olc::Sprite keySpr;
+    bool moving;
+    int input_delay;
 
     Map* map;
     byte** explored;
@@ -37,7 +40,7 @@ protected:
     Point player;
     Points keys;
     bool over;
-    byte facing;
+    Direction facing;
 
     void draw();
     void map_init(int rows, int cols);

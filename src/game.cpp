@@ -5,16 +5,16 @@ Game::Game(int rows, int cols)
     : Game(rows, cols, Point(0, 0), Point(cols - 1, rows - 1), Points()) {};
 
 Game::Game(int rows, int cols, Point start, Point end, Points keys)
-    : exit(end), entrance(start), keys(keys), over(false), facing(0)
+    : exit(end), entrance(start), keys(keys), over(false), facing(Direction::EAST)
 {
     sAppName = "Labyrinth";
+    moving = false;
+    input_delay = 0;
 
     srand((unsigned)time(NULL));
-
     map_init(rows, cols);
     explored = alloc2D(map->width(), map->height(), false);
     update_fog();
-
     tile_seed = alloc2D(map->width(), map->height());
     for ( int x = 0; x < map->width(); ++x )
         for ( int y = 0; y < map->height(); ++y )
@@ -33,6 +33,7 @@ Game::~Game()
     delete map;
     delete barrierSprs;
     delete charSprs;
+    delete doorSprs;
     delete floorSprs;
     delete wallSprs;
     for ( int i = 0; i < FOG_N; ++i )
@@ -44,19 +45,19 @@ void Game::draw() {
 
     // draw border
     for ( int r = 0, c = map->width() + 1; r < map->height() + 2; ++r ) {
-        DrawSprite(olc::vi2d(0, r) * TILE_SIZE, barrierSprs->rand(r));
-        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, barrierSprs->rand(r * c));
+        DrawSprite(olc::vi2d(0, r) * TILE_SIZE, barrierSprs->rand(r).get());
+        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, barrierSprs->rand(r * c).get());
     }
     for ( int c = 0, r = map->height() + 1; c < map->width() + 2; ++c ) {
-        DrawSprite(olc::vi2d(c, 0) * TILE_SIZE, barrierSprs->rand(c));
-        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, barrierSprs->rand(r * c));
+        DrawSprite(olc::vi2d(c, 0) * TILE_SIZE, barrierSprs->rand(c).get());
+        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, barrierSprs->rand(r * c).get());
     }
 
     // draw floor
     for ( int r = 1; r < map->height() + 1; ++r )
         for ( int c = 1; c < map->width() + 1; ++c )
             DrawSprite(olc::vi2d(c, r) * TILE_SIZE,
-                       floorSprs->rand(tile_seed[c - 1][r - map->height()]));
+                       floorSprs->rand(tile_seed[c - 1][r - map->height()]).get());
 
     // draw objects with transparency
     SetPixelMode(olc::Pixel::MASK);
@@ -69,18 +70,31 @@ void Game::draw() {
 
             if ( exploration > 0 ) {
                 switch ( (Tile)map->get(x, y) ) {
-                    case Tile::CHAR:
+                case Tile::CHAR:
                         if ( player == exit )
-                            DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &doorSpr);
+                            DrawSprite(olc::vi2d(c, r) * TILE_SIZE, doorSprs->at(over).get());
                         else if ( player == entrance )
                             DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &ladderSpr);
-                        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, charSprs->at(facing));
+                        if ( !over ) {
+                            olc::vi2d shift;
+                            if ( moving ) {
+                                switch ( facing ) {
+                                case Direction::NORTH: shift = olc::vi2d(0, -2); break;
+                                case Direction::SOUTH: shift = olc::vi2d(0, 2); break;
+                                case Direction::EAST: shift = olc::vi2d(2, 0); break;
+                                case Direction::WEST: shift = olc::vi2d(-2, 0); break;
+                                default: shift = olc::vi2d(0, 0);
+                                }
+                            }
+                            DrawSprite(olc::vi2d(c, r) * TILE_SIZE - shift * (input_delay / 2),
+                                       charSprs->at((int)facing).get());
+                        }
                         break;
                     case Tile::WALL:
-                        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, wallSprs->rand(seed));
+                        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, wallSprs->rand(seed).get());
                         break;
                     case Tile::EXIT:
-                        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &doorSpr);
+                        DrawSprite(olc::vi2d(c, r) * TILE_SIZE, doorSprs->at(0).get());
                         break;
                     case Tile::KEY:
                         DrawSprite(olc::vi2d(c, r) * TILE_SIZE, &keySpr);
@@ -92,11 +106,15 @@ void Game::draw() {
             }
 
             if ( exploration < FOG_N ) {
-                srand((unsigned)time(NULL) * (y * map->width() + x));
-                DrawSprite(olc::vi2d(c, r) * TILE_SIZE, fogSprs[exploration]->rand());
+                int i = over ? seed : seed + time(NULL);
+                DrawSprite(olc::vi2d(c, r) * TILE_SIZE, fogSprs[exploration]->rand(i).get());
             }
         }
     }
+
+    if ( over )
+        DrawSprite(olc::vi2d(ScreenWidth() / 2 - 2 * TILE_SIZE, ScreenHeight() / 2 - 1 * TILE_SIZE), &endcardSpr);
+
     SetPixelMode(olc::Pixel::NORMAL);
 }
 
@@ -143,10 +161,10 @@ bool Game::move( byte direction ) // Updates player position and facing directio
 
     switch ( (Direction)direction )
     {
-    case Direction::NORTH : { valid = map->get(x, ++y) != (byte)Tile::WALL; if (valid) facing = UP   ; break; }
-    case Direction::EAST  : { valid = map->get(++x, y) != (byte)Tile::WALL; if (valid) facing = RIGHT; break; }
-    case Direction::SOUTH : { valid = map->get(x, --y) != (byte)Tile::WALL; if (valid) facing = DOWN ; break; }
-    case Direction::WEST  : { valid = map->get(--x, y) != (byte)Tile::WALL; if (valid) facing = LEFT ; break; }
+    case Direction::NORTH : { valid = map->get(x, ++y) != (byte)Tile::WALL; facing = Direction::NORTH ; break; }
+    case Direction::EAST  : { valid = map->get(++x, y) != (byte)Tile::WALL; facing = Direction::EAST  ; break; }
+    case Direction::SOUTH : { valid = map->get(x, --y) != (byte)Tile::WALL; facing = Direction::SOUTH ; break; }
+    case Direction::WEST  : { valid = map->get(--x, y) != (byte)Tile::WALL; facing = Direction::WEST  ; break; }
     default: break;
     }
 
@@ -164,11 +182,12 @@ bool Game::move( byte direction ) // Updates player position and facing directio
 
 bool Game::OnUserCreate() { // init
     // allocate sprites here (not in cosntructor!) for Windows compatability
-    doorSpr  .LoadFromFile("./assets/sprites/door.png");
-    ladderSpr.LoadFromFile("./assets/sprites/ladder.png");
-    keySpr   .LoadFromFile("./assets/sprites/key.png");
-    charSprs    = new Sprites(CHAR_SPRS);
+    endcardSpr .LoadFromFile("./assets/sprites/endcard.png");
+    ladderSpr  .LoadFromFile("./assets/sprites/ladder.png");
+    keySpr     .LoadFromFile("./assets/sprites/key.png");
     barrierSprs = new Sprites(BARRIER_SPRS);
+    charSprs    = new Sprites(CHAR_SPRS);
+    doorSprs    = new Sprites(DOOR_SPRS);
     floorSprs   = new Sprites(FLOOR_SPRS);
     wallSprs    = new Sprites(WALLS_SPRS);
     fogSprs[3]  = new Sprites(FOG_W_SPRS);
@@ -183,43 +202,48 @@ bool Game::OnUserUpdate(float fElapsedTime) { // frame update
     // static unsigned long long frame = 0;
     static float t_since_update = 0.0;
     static Direction direction = Direction::NONE;
-    static short input_delay = 0;
 
     t_since_update += fElapsedTime;
 
     if ( t_since_update > FRAME_TIME ) {
         t_since_update -= FRAME_TIME;
+        --input_delay;
         // printf("Frame: %llu\n", frame++);
 
-        if ( --input_delay <= 0 && direction == Direction::NONE ) {
-                 if (GetKey(olc::Key::W).bHeld) direction = Direction::NORTH;
-            else if (GetKey(olc::Key::D).bHeld) direction = Direction::EAST;
-            else if (GetKey(olc::Key::S).bHeld) direction = Direction::SOUTH;
-            else if (GetKey(olc::Key::A).bHeld) direction = Direction::WEST;
-            if ( direction != Direction::NONE )
-                input_delay = 6;
-        }
+        if ( !over ) {
+            if ( input_delay <= 0 && direction == Direction::NONE ) {
+                moving = false;
+                if ( GetKey(olc::Key::W).bHeld ) direction = Direction::NORTH;
+                else if ( GetKey(olc::Key::D).bHeld ) direction = Direction::EAST;
+                else if ( GetKey(olc::Key::S).bHeld ) direction = Direction::SOUTH;
+                else if ( GetKey(olc::Key::A).bHeld ) direction = Direction::WEST;
+                if ( direction != Direction::NONE )
+                    input_delay = INPUT_DELAY;
+            }
 
-        bool moved = move((byte)direction);
-        direction = Direction::NONE;
+            bool moved = move((byte)direction);
+            direction = Direction::NONE;
 
-        if ( moved ) {
-            update_fog();
+            if ( moved ) {
+                moving = true;
+                update_fog();
 
-            if ( keys.contains(player) )
-                keys.remove(player);
+                if ( keys.contains(player) )
+                    keys.remove(player);
+            }
 
-            if ( player == exit ) {
-                if ( keys.size() == 0 )
+            if ( player == exit && input_delay * 2 < INPUT_DELAY ) {
+                if ( keys.size() == 0 ) {
                     over = true;
-                else
+                    input_delay = 20;
+                } else {
                     printf("You cannot unlock the door.\n");
+                }
             }
-
-            if ( over ) {
-                printf("You cleared the maze!\n");
+        } else if ( input_delay <= 0 ) {
+            if ( GetKey(olc::Key::W).bHeld || GetKey(olc::Key::A).bHeld ||
+                 GetKey(olc::Key::S).bHeld || GetKey(olc::Key::D).bHeld || GetKey(olc::Key::SPACE).bHeld )
                 return false;
-            }
         }
 
         draw();

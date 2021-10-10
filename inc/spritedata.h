@@ -17,6 +17,11 @@ constexpr const char * const CHAR_SPRS[] = {
 };
 
 
+constexpr const char * const DOOR_SPRS[] = {
+    PATH "doorClosed.png", PATH "doorOpen.png", nullptr
+};
+
+
 constexpr const char * const FLOOR_SPRS[] = {
     PATH "floor0.png", PATH "floor1.png", PATH "floor2.png",
     PATH "floor3.png", PATH "floor4.png", PATH "floor5.png",

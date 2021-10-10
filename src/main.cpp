@@ -120,30 +120,31 @@ void random_init(Parameters& args) {
     int& cs = args.cols;
 
     if ( rs == 0 || cs == 0 ) {
-        int rmin = 4, rmax = 10;
-        int cmin = 4, cmax = 20;
+        const int rmin = 4, rmax = 10;
+        const int cmin = 4, cmax = 20;
         rs = rmin + rand() % (rmax - rmin + 1);
         cs = cmin + rand() % (cmax - cmin + 1);
     }
 
     Points objs;
-    int weight = rand() % ((rs * cs) / (2 * (rs + cs)) + 1);
+    const int weight = rand() % ((rs * cs) / (2 * (rs + cs)) + 1);
 
-    for ( int i = 0; i < weight + 2; ++i ) {
+    for ( int i = 0; i < weight + 2 + 1; ++i ) { // 2 for entrance/exit, 1 for a guaranteed key
         Point obj(rand() % cs, rand() % rs);
         while ( objs.contains(obj) )
             obj = Point(rand() % cs, rand() % rs);
         objs.push_back(obj);
     }
 
-    Point center(cs / 2, rs / 2);
+    // make entrance and exit the farthest from each other
+    args.start = objs.back();
+    objs.pop_back();
     sort(objs.begin(), objs.end(),
-        [center](Point a, Point b) { return a.dist(center) < b.dist(center); }
+        [args](Point a, Point b) { return a.dist(args.start) < b.dist(args.start); }
     );
 
-    args.start = *(objs.end() - 1);
-    args.exit  = *(objs.end() - 2);
-    args.keys.insert(args.keys.end(), objs.begin(), objs.end() - 2);
+    args.exit = objs.back();
+    args.keys.insert(args.keys.end(), objs.begin(), objs.end() - 1);
 }
 
 
