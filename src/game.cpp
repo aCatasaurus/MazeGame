@@ -7,6 +7,8 @@ Game::Game(int rows, int cols)
 Game::Game(int rows, int cols, Point start, Point end, Points keys)
     : exit(end), entrance(start), keys(keys), over(false), facing(0)
 {
+    sAppName = "Labyrinth";
+
     srand((unsigned)time(NULL));
 
     map_init(rows, cols);

@@ -1,5 +1,8 @@
 #ifndef __MAIN__HEADER__H__
 #define __MAIN__HEADER__H__
+#ifdef _WIN32
+#pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+#endif
 
 #include <stdlib.h> // exit, EXIT_FAILURE, atoi
 #include <stdio.h> // printf

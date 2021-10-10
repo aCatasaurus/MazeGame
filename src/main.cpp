@@ -25,6 +25,12 @@ bool parse_args(int argc, char** argv, Parameters& args)
     args.rows = args.cols = 0;
     args.start = Point(-1, -1);
 
+    if ( argc == 1 )
+    {
+        random_init(args);
+        return true;
+    }
+
     for ( int i = 1; i < argc; i++ ) // parse argv
     {
         try // catch invalid args via i >= argc checks and invalid input types
@@ -150,7 +156,8 @@ void usage(char* name)
     "\t-h : display this information\n"
     "\t-s : the starting position, e.g., '-s <row> <column>; default = (0, 0)'\n"
     "\t-e : position of the exit; default = (rows - 1, cols - 1)\n"
-    "\t-k : position for a key to be placed, may be given multiple times\n",
+    "\t-k : position for a key to be placed, may be given multiple times\n"
+    "\tNo arguments is equivalent to \"-r\".\n",
     name
     );
 }
