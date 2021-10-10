@@ -22,7 +22,7 @@ CXXFLAGS = -Wall -O3 -std=c++14
 # Fill in special libraries needed here
 LIBS = -lX11 -lGL -lpthread -lpng -lstdc++fs
 
-.PHONY: clean realclean help setdebug
+.PHONY: clean realclean help .setdebug .tests
 
 all: $(BIN_DIR) main
 
