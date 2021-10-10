@@ -3,7 +3,7 @@
 
 Map::Map(int width, int height) : ROWS(height), COLS(width)
 {
-    data = alloc2D(ROWS, COLS, WALL);
+    data = alloc2D(ROWS, COLS, (byte)Tile::WALL);
 }
 
 Map::~Map()

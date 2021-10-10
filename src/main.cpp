@@ -108,7 +108,7 @@ bool parse_args(int argc, char** argv, Parameters& args)
 
 
 void random_init(Parameters& args) {
-    srand(time(NULL));
+    srand((unsigned)time(NULL));
 
     int& rs = args.rows;
     int& cs = args.cols;
@@ -130,7 +130,7 @@ void random_init(Parameters& args) {
         objs.push_back(obj);
     }
 
-    Point center(cs / 2.0, rs / 2.0);
+    Point center(cs / 2, rs / 2);
     sort(objs.begin(), objs.end(),
         [center](Point a, Point b) { return a.dist(center) < b.dist(center); }
     );

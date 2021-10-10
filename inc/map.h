@@ -14,8 +14,8 @@ using std::ostream;
 typedef function<byte&(int, int)> TileGetter;
 typedef void(*Generator)(TileGetter, int, int);
 
-enum Tile : char { CHAR = '@', OPEN = ' ', WALL = '#', EXIT = 'n', KEY  = '%', LADDER = 'H' };
-enum Direction : char { NONE, NORTH, SOUTH, EAST, WEST };
+enum class Tile : char { CHAR = '@', OPEN = ' ', WALL = '#', EXIT = 'n', KEY  = '%', LADDER = 'H' };
+enum class Direction : char { NONE, NORTH, SOUTH, EAST, WEST };
 
 
 class Map
