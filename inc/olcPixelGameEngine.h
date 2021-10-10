@@ -103,11 +103,11 @@
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Well I wont judge you, but make sure your Code::Blocks installation
 	is really up to date - you may even consider updating your C++ toolchain
-	to use MinGW32-W64. 
+	to use MinGW32-W64.
 
-	Guide for installing recent GCC for Windows: 
+	Guide for installing recent GCC for Windows:
 	https://www.msys2.org/
-	Guide for configuring code::blocks: 
+	Guide for configuring code::blocks:
 	https://solarianprogrammer.com/2019/11/05/install-gcc-windows/
 	https://solarianprogrammer.com/2019/11/16/install-codeblocks-gcc-windows-build-c-cpp-fortran-programs/
 
@@ -224,7 +224,10 @@
 	#include <X11/Xlib.h>
 	#include <png.h>
 	typedef int(glSwapInterval_t) (Display *dpy, GLXDrawable drawable, int interval);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
 	static glSwapInterval_t *glSwapIntervalEXT;
+#pragma GCC diagnostic pop
 #endif
 
 
@@ -711,15 +714,15 @@ namespace olc
 
 #if defined(_WIN32)
 	std::wstring ConvertS2W(std::string s)
-	{		
+	{
 #ifdef __MINGW32__
 		wchar_t *buffer = new wchar_t[s.length() + 1];
 		mbstowcs(buffer, s.c_str(), s.length());
-		buffer[s.length()] = L'\0';		
+		buffer[s.length()] = L'\0';
 #else
 		int count = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, NULL, 0);
 		wchar_t* buffer = new wchar_t[count];
-		MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, buffer, count);		
+		MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, buffer, count);
 #endif
 		std::wstring w(buffer);
 		delete[] buffer;
@@ -833,7 +836,7 @@ namespace olc
 			// Load sprite from file
 			bmp = Gdiplus::Bitmap::FromFile(ConvertS2W(sImageFile).c_str());
 		}
-		
+
 		if (bmp == nullptr) return olc::NO_FILE;
 		width = bmp->GetWidth();
 		height = bmp->GetHeight();
@@ -1006,7 +1009,7 @@ namespace olc
 	Pixel* Sprite::GetData() { return pColData; }
 
 	//==========================================================
-	// Resource Packs - Allows you to store files in one large 
+	// Resource Packs - Allows you to store files in one large
 	// scrambled file
 
 
@@ -1022,14 +1025,14 @@ namespace olc
 
 	bool ResourcePack::AddFile(const std::string& sFile)
 	{
-		
+
 		const std::string file = makeposix(sFile);
 
 		if (_gfs::exists(file))
 		{
 			sResourceFile e;
 			e.nSize = (uint32_t)_gfs::file_size(file);
-			e.nOffset = 0; // Unknown at this stage			
+			e.nOffset = 0; // Unknown at this stage
 			mapFiles[file] = e;
 			return true;
 		}
@@ -1045,7 +1048,7 @@ namespace olc
 		// 1) Read Scrambled index
 		uint32_t nIndexSize = 0;
 		baseFile.read((char*)&nIndexSize, sizeof(uint32_t));
-		
+
 		std::string buffer(nIndexSize, ' ');
 		for (uint32_t j = 0; j < nIndexSize; j++)
 			buffer[j] = baseFile.get();
@@ -1117,7 +1120,7 @@ namespace olc
 			ofs.write(vBuffer.data(), e.second.nSize);
 			offset += e.second.nSize;
 		}
-		
+
 		// 3) Scramble Index
 		std::stringstream oss;
 		oss.write((char*)&nMapSize, sizeof(uint32_t));
@@ -1631,9 +1634,9 @@ namespace olc
 				else              t2x += signx2;
 			}
 		next2:
-			if (minx>t1x) minx = t1x; 
+			if (minx>t1x) minx = t1x;
 			if (minx>t2x) minx = t2x;
-			if (maxx<t1x) maxx = t1x; 
+			if (maxx<t1x) maxx = t1x;
 			if (maxx<t2x) maxx = t2x;
 			drawline(minx, maxx, y);    // Draw line from min to max points found on the y
 										// Now increase y
@@ -1692,7 +1695,7 @@ namespace olc
 
 			if (minx>t1x) minx = t1x;
 			if (minx>t2x) minx = t2x;
-			if (maxx<t1x) maxx = t1x; 
+			if (maxx<t1x) maxx = t1x;
 			if (maxx<t2x) maxx = t2x;
 			drawline(minx, maxx, y);
 			if (!changed1) t1x += signx1;
@@ -2459,7 +2462,7 @@ namespace olc
 		}
 
 		if (glSwapIntervalEXT != nullptr && !bEnableVSYNC)
-			glSwapIntervalEXT(olc_Display, olc_Window, 0);		
+			glSwapIntervalEXT(olc_Display, olc_Window, 0);
 		return true;
 	}
 

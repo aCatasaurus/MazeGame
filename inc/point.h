@@ -3,6 +3,7 @@
 
 #include <algorithm> // find
 #include <iostream>
+#include <math.h>   // pow
 #include <stdlib.h> // rand
 #include <vector>
 
@@ -19,6 +20,8 @@ struct Point {
     Point operator*(int scalar) const;
     Point operator+(const Point& o) const;
     bool operator==(const Point& o) const;
+
+    double dist(Point) const;
 };
 
 ostream& operator<<(ostream& out, Point p);
