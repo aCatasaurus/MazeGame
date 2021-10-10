@@ -14,6 +14,7 @@ public:
     Sprites(const char * const files[]);
 
     olc::Sprite* rand();
+    olc::Sprite* rand(int seed);
 };
 
 

@@ -2,6 +2,7 @@
 #define __GAME__H__
 
 #include "olcPixelGameEngine.h"
+#include <algorithm>    // min
 #include <stdlib.h> // exit, EXIT_FAILURE
 #include <stdexcept>
 #include "map.h"
@@ -16,19 +17,22 @@ constexpr int TILE_SIZE = 8;
 constexpr int PXL_SIZE = 2;
 
 
-class Game : public olc::PixelGameEngine
-{
+class Game : public olc::PixelGameEngine {
 protected:
+    Sprites* barrierSprs;
     Sprites* charSprs;
     Sprites* wallSprs;
     Sprites* floorSprs;
-    Sprites* fogSprs;
+    Sprites* fogSprs[FOG_N];
     olc::Sprite doorSpr;
+    olc::Sprite ladderSpr;
     olc::Sprite keySpr;
 
     Map* map;
-    bool** explored;
+    byte** explored;
+    byte** tile_seed;
     Point exit;
+    Point entrance;
     Point player;
     Points keys;
     bool over;

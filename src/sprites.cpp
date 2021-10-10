@@ -12,3 +12,8 @@ Sprites::Sprites(const char * const files[]) {
 olc::Sprite* Sprites::rand() {
     return (*this)[::rand() % size()];
 }
+
+
+olc::Sprite* Sprites::rand(int seed) {
+    return (*this)[seed % size()];
+}
